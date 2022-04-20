@@ -131,7 +131,7 @@ plt.show()
 
 </br>
 
-### KFold 연습
+## KFold 연습
 
 <details>
 <summary>코드 펼치기/접기</summary>
