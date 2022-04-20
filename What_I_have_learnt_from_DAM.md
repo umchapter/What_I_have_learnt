@@ -2817,6 +2817,10 @@ Length of simulated time series. Used, for example, if a sample is generated. Se
 
 </br>
 
+<details>
+<summary>예제 코드 펼치기/접기</summary>
+<div markdown="1">
+  
 ```python
 # AR 모형 실습
 from statsmodels.tsa.arima_process import ArmaProcess
@@ -2906,3 +2910,7 @@ model_fit.predict().tail(30).plot()
 df_apple_monthly["Close_3Month_Mean"].tail(30).plot()
 plt.legend()
 ```
+</div>
+</details>
+
+</br>
