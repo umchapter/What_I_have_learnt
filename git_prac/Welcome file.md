@@ -1,7 +1,7 @@
 
 # 1. git 명령어 모음
 
-![post-thumbnail](https://velog.velcdn.com/images/yesslkim94/post/558b9e9e-1ad3-490d-ac3d-f8d6b0fdecc4/git.png)
+![post-thumbnail](images/git_thum_nail.png)
   ### **Git 설치 (for ubuntu)
 
 1) 터미널 (ctrl + Alt + T)  
