@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search this?</title>
+    
+    
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/dashboard/">
+        
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+
+    <script type="text/javascript">
+
+
+        function changeTrColor(trObj, oldColor, newColor) {
+            trObj.style.backgroundColor = newColor;
+            trObj.onmouseout = function(){
+                trObj.style.backgroundColor = oldColor;
+            }
+        }
+    
+        function read(tr){
+	    var symbol_ = tr.getElementsByTagName("td")[0].innerText;
+              
+        document.getElementById("send").input_.value=symbol_;
+        document.getElementById("send").submit()
+        };
+
+ 
+        function LoadingWithMask() {
+          
+          //화면에 출력할 마스크를 설정해줍니다.
+          var mask       ="<div id='mask' style=' position:absolute; z-index:9000; background-color:#000000; display:none; left:0; top:0;'></div>";
+          var loadingImg ='';
+            
+          loadingImg +="<div class='layer' id='loadingImg' style='top:40%; left:45%; position:absolute; z-index:8500; margin: 0px auto;'>";
+          loadingImg +="<img src='../static/img/1481.gif'/>";
+          loadingImg +="</div>"; 
+        
+          //화면에 레이어 추가
+          $('body')
+              .append(mask)
+              .append(loadingImg)
+        
+        //마스크의 높이와 너비를 전체 화면으로 설정합니다.
+        $('#mask').css({
+            'width' : '100%'
+            ,'height': '100%'
+            ,'opacity' :'0.3'
+          }); 
+        
+          //마스크 표시
+          $('#mask').show();  
+        
+          //로딩중 이미지 표시
+          $('#loadingImg').show();
+      }
+ 
+    function closeLoadingWithMask() {
+    $('#mask, #loadingImg').hide();
+    $('#mask, #loadingImg').empty(); 
+}
+
+    </script>
+
+    <style type="text/css">
+      /* link - 아직 클릭하지 않은 경우 red 색상 설정 */
+      a:link { color: #427267; text-decoration: none;}	
+      /* visited - 한번 클릭하거나 전에 클릭한적 있을 경우 #c71d44 설정 */
+      a:visited { color: #c71d44; text-decoration: none;}	
+      /* hover - 마우스를 해당 링크에 위치했을 경우 #006DD7 설정 */
+      a:hover { color: #006DD7; text-decoration: underline;}
+    </style>
+
+   <!-- CSS only -->
+    <link href="..\static\css\bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+</head>
+<body>
+
+    <!-- 좌상측 제목-->
+<form action="/task/" method="post" onsubmit="javascript:LoadingWithMask()">
+<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="/sign_in/">Chart Search</a>
+  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search" name="input_">
+  <div class="navbar-nav">
+    <div class="nav-item text-nowrap">
+        <button class="btn btn-outline-secondary" type="submit" id="input_">go</button>
+    </div>
+  </div>
+</header>
+</form>
+
+  <!--왼쪽 페이지 이동 링크들-->
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+        <div class="position-sticky pt-3">
+          <ul class="nav flex-column">
+            <li>
+              <a class="nav-link active" aria-current="page" href="/expl/">ARIMA 모형이란?</a>
+            </li>
+            <li>
+              <a class="nav-link active" aria-current="page" href="/intrprt/">모델의 해석방법과 예측의 활용법</a>
+           </li>
+          </ul>            
+        </div>
+      </nav>
+    
+  
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">찾고자 하는 종목을 선택해주십시오.</h1>
+        
+      </div>
+
+   
+     {% if df_t == False %}
+
+      <div>
+          <form action="/task/" method="post" id="send">
+          <table class="table" id="select_table">
+          <tr>
+              {% for i in df_ %}
+                  <th>{{i}}</th>
+              {% endfor%}
+          </tr>
+
+              {% for i in df_.values %}
+
+              <tr style="cursor:pointer;" onclick="read(this)|LoadingWithMask()"
+              onmouseover="javascript:changeTrColor(this, '#FFFFFF', '#F4FFFD')">
+                          
+              
+                  <td>{{i[0]}}</td>
+                  <td>{{i[1]}}</td>
+              
+                          
+              </tr>
+
+              {% endfor%}
+
+          </table>
+          <input type="hidden" name="input_" value="">
+      </form>
+      </div>
+    {% else %}
+      <div>
+        <p>검색어를 정확히 입력해주십시오.</p>
+      </div>
+    {% endif %}
+    </main>
+  </div>
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js" integrity="sha384-zNy6FEbO50N+Cg5wap8IKA4M/ZnLJgzc6w2NqACZaK0u0FXfOWRRJOnQtpZun8ha" crossorigin="anonymous"></script><script src="dashboard.js"></script>
+
+</body>
+</html>

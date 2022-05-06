@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What is ARIMA?</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/dashboard/">
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: { inlineMath: [['$$', '$$']], displayMath: [['$$$', '$$$']] }
+        });
+    </script>
+    <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+
+     <!-- Bootstrap core CSS -->
+     <link href="..\static\css\bootstrap.min.css" rel="stylesheet">
+
+    <style type="text/css">
+      /* link - 아직 클릭하지 않은 경우 red 색상 설정 */
+      a:link { color: #427267; text-decoration: none;}	
+      /* visited - 한번 클릭하거나 전에 클릭한적 있을 경우 #c71d44 설정 */
+      a:visited { color: #c71d44; text-decoration: none;}	
+      /* hover - 마우스를 해당 링크에 위치했을 경우 #006DD7 설정 */
+      a:hover { color: #006DD7; text-decoration: underline;}
+    </style>
+
+</head>
+    <body>
+  
+        <!-- 좌상측 제목-->
+        
+    <form action="/task/" method="post" onsubmit="javascript:LoadingWithMask()" > 
+      <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+         <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="/sign_in/">Chart page</a>
+          <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search" name="input_">
+          <div class="navbar-nav">
+            <div class="nav-item text-nowrap">
+              <button class="btn btn-outline-secondary" type="submit" id="input_">go</button>
+            </div>
+          </div>
+      </header>
+    </form>
+    
+    <!--왼쪽 페이지 이동 링크들-->
+    <div class="container-fluid">
+      <div class="row">
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+          <div class="position-sticky pt-3">
+            <ul class="nav flex-column">
+              <li>
+                <a class="nav-link active" aria-current="page" href="/expl/">ARIMA 모형이란?</a>
+              </li>
+              <li>
+                <a class="nav-link active" aria-current="page" href="/intrprt/">모델의 해석방법과 예측의 활용법</a>
+             </li>
+            </ul>            
+          </div>
+        </nav>
+        
+    
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">ARIMA 모형이란?</h1>
+            
+          </div>
+          
+          <div class="board_view_content">
+              <article>
+              <p>
+                ARIMA(Auto-regressive Integrated Moving Average) 모형은 시계열 데이터 기반 분석 기법으로 과거지식이나 경험을 바탕으로 한 행동에 따라 경제가 움직이고 있음을 기초로 합니다. 시계열 분석은 주가 전망이나 수요 예측 등에 사용되며 매우 다양한 기법으로 발전하였으나, 계량경제모델이 점점 대형화되면서 오히려 경제의 본질적인 부문을 제대로 설명하기 어려워졌습니다. 이러한 상황을 극복하기 위해 소수의 시계열 데이터만을 이용한 단순 모델로 경제 분석 및 예측을 시도하는 움직임이 최근 활발히 진행되고 있습니다. ARIMA 모형은 과거의 관측 값과 오차를 사용해서 현재의 시계열 값을 설명하는 ARMA(Auto-regressive Moving Average) 모델을 일반화 한 것으로, 분기/반기/연간 단위로 다음 지표를 예측한다거나 주간/월간 단위로 지표를 리뷰하며 트렌드에 이상치가 없는지를 모니터링 하는 데 사용되는 분석 기법입니다. ARMA 모델이 안정적 시계열(Stationary Series)에만 적용 가능한 것에 비해, 분석 대상이 다소 비안정적인 시계열(Non Stationary Series)의 특징을 보여도 적용이 가능합니다.
+              </p>
+              <p>
+                안정적인 시계열이란 시간의 추이와 관계없이 평균 및 분산이 불변하거나 시점 간의 공분산이 기준시점과 무관한 형태의 시계열입니다. 시계열이 안정적이지 않을 때는 로그를 이용하거나 차분을 통해 시계열을 안정적으로 변환한 뒤에 분석을 진행합니다. 다음 그래프는 안정적인 시계열과 비안정적인 시계열의 몇 가지 예시입니다.
+              </p>
+              <p>
+                  <img src="https://icim.nims.re.kr/file/3c870186596f4c03bc0571d6039a27ca.png" alt="자세한 내용은 아래 참조" />
+              </p>
+              <p>[그래프 출처] 
+                <a href="https://stats.stackexchange.com/questions/182764/stationarity-tests-in-r-checking-mean-variance-and-covariance" title="새창으로 열기" target="_blank" rel="noopenner noreferer">https://stats.stackexchange.com/questions/182764/stationarity-tests-in-r-checking-mean-variance-and-covariance</a>
+            </p>
+            <p>ARIMA 모형의 일반적인 형태는 다음과 같습니다. </p>
+            <p>            
+            <script type="math/tex; mode=display" id="MathJax-Element-1">
+                X_t - \phi_1 X_{t-1} - \cdots - \phi_p X_t-p = Z_t + \theta_1 Z_t-1 + \cdots + \theta_q Z_t-q, ~~ t=0, \pm 1, \pm 2, \cdots
+            </script>
+            </p>
+            <p>
+                이때, <script type="math/tex" id="MathJax-Element-2">{X_t }</script>은 ARIMA를 통해 예측하고자 하는 데이터이고 <script type="math/tex" id="MathJax-Element-3">{Z_t }</script>은 백색잡음(White Noise)으로, 모두 독립적이고 동일하게 분산된 (IID) 확률 변수입니다.  
+            </p>
+            <p>
+                즉, <script type="math/tex" id="MathJax-Element-4">X_t \sim (0, \sigma_X^2 )</script>이고 <script type="math/tex" id="MathJax-Element-5">\rm Z_{t} \sim (0, \sigma_Z^2 )</script>입니다.
+            </p>
+            </br>
+            <p>
+                출처 - <a href="https://icim.nims.re.kr/post/easyMath/68">산업수학혁신센터(ARIMA 모형과 에너지 예측)</a>
+            </p>
+            </article>
+          </div>
+        </main>
+      </div>
+    </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js" integrity="sha384-zNy6FEbO50N+Cg5wap8IKA4M/ZnLJgzc6w2NqACZaK0u0FXfOWRRJOnQtpZun8ha" crossorigin="anonymous"></script><script src="dashboard.js"></script>
+</body>
+</html>

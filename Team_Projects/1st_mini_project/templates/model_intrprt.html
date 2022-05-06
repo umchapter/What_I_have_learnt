@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Interpretation</title>
+
+    
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/dashboard/">
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: { inlineMath: [['$$', '$$']], displayMath: [['$$$', '$$$']] }
+        });
+    </script>
+    <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+
+     <!-- Bootstrap core CSS -->
+     <link href="..\static\css\bootstrap.min.css" rel="stylesheet">
+
+    <style type="text/css">
+      /* link - 아직 클릭하지 않은 경우 red 색상 설정 */
+      a:link { color: #427267; text-decoration: none;}	
+      /* visited - 한번 클릭하거나 전에 클릭한적 있을 경우 #c71d44 설정 */
+      a:visited { color: #c71d44; text-decoration: none;}	
+      /* hover - 마우스를 해당 링크에 위치했을 경우 #006DD7 설정 */
+      a:hover { color: #006DD7; text-decoration: underline;}
+    </style>
+
+</head>
+
+    <body>
+  
+        <!-- 좌상측 제목-->
+        
+    <form action="/task/" method="post" onsubmit="javascript:LoadingWithMask()" > 
+      <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+         <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="/sign_in/">Chart page</a>
+          <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search" name="input_">
+          <div class="navbar-nav">
+            <div class="nav-item text-nowrap">
+              <button class="btn btn-outline-secondary" type="submit" id="input_">go</button>
+            </div>
+          </div>
+      </header>
+    </form>
+    
+    <!--왼쪽 페이지 이동 링크들-->
+    <div class="container-fluid">
+      <div class="row">
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+          <div class="position-sticky pt-3">
+            <ul class="nav flex-column">
+              <li>
+                <a class="nav-link active" aria-current="page" href="/expl/">ARIMA 모형이란?</a>
+              </li>
+              <li>
+                <a class="nav-link active" aria-current="page" href="/intrprt/">모델의 해석방법과 예측의 활용법</a>
+             </li>
+            </ul>            
+          </div>
+        </nav>
+      
+
+
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">모델의 해석방법과 예측의 활용법</h1>
+        </div>
+        
+        <div>
+            <article>
+                <h2>비-계절성 ARIMA 모델</h2>
+                <p>차분을 구하는 것을 자기회귀와 이동 평균 모델과 결합하면, 비-계절성(non-seasonal) ARIMA 모델을 얻습니다. ARIMA는 AutoRegressive Integrated Moving Average (이동 평균을 누적한 자기회귀)의 약자입니다(이러한 맥락에서, “누적(integration)”은 차분의 반대 의미를 갖습니다). 모델을 다음과 같이 나타낼 수 있습니다.
+                    <script type="math/tex; mode=display" id="MathJax-Element-1">\begin{equation}
+                      y'_{t} = c + \phi_{1}y'_{t-1} + \cdots + \phi_{p}y'_{t-p}
+                         + \theta_{1}\varepsilon_{t-1} + \cdots + \theta_{q}\varepsilon_{t-q} + \varepsilon_{t},  \tag{8.1}
+                    \end{equation}</script></span>
+                    여기에서 <script type="math/tex" id="MathJax-Element-2">y'_{t}</script></span>는 차분을 구한 시계열입니다(한 번 이상 차분을 구한 것일 수도 있습니다). 우변의 “예측변수(predictor)”에는 <script type="math/tex" id="MathJax-Element-3">y_t</script></span>의 시차 값과 시차 오차(lagged error) 둘 다를 포함합니다. 이것을 <strong>ARIMA(<script type="math/tex" id="MathJax-Element-4">p, d, q</script></span>) 모델</strong>이라고 부르겠습니다. 여기에서 각 변수 <script type="math/tex" id="MathJax-Element-5">p, d, q</script></span>는 다음과 같은 의미를 갖습니다.</p>
+
+                    <table class="table" width="100px">
+                      <thead class="table-light; table-primary">
+                      <tr>
+                      <th style="text-align:right">
+                        &nbsp;
+                      </th>
+                      <th style="text-align:left;">
+                      </th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr>
+                      <td style="text-align:right;">
+                      <script type="math/tex" id="MathJax-Element-6">p=</script>
+                      </td>
+                      <td style="text-align:left;">
+                      자기회귀 부분의 차수;
+                      </td>
+                      </tr>
+                      <tr>
+                      <td style="text-align:right;">
+                      <script type="math/tex" id="MathJax-Element-7">d=</script>
+                      </td>
+                      <td style="text-align:left;">
+                      1차 차분이 포함된 정도;
+                      </td>
+                      </tr>
+                      <tr>
+                      <td style="text-align:right;">
+                      <script type="math/tex" id="MathJax-Element-8">q=</script>
+                      </td>
+                      <td style="text-align:left;">
+                      이동 평균 부분의 차수.
+                      </td>
+                      </tr>
+                      </tbody>
+                    </table>
+                    <p>자기회귀(autoregression)와 이동 평균 모델에 사용되는 것과 같은 정상성(stationarity)과 가역성(invertiblity) 조건은 ARIMA 모델에도 적용됩니다.</p>
+                    <p>표 8.1은 ARIMA 모델의 특수한 경우를 보여줍니다.</p>
+                    
+                    <table class="table table-striped">
+                      <caption>
+                      <span id="tab:arimaspecialcases">Table 8.1: </span>ARIMA 모델의 특별한 경우.
+                      </caption>
+                      <tbody>
+                      <tr>
+                      <td style="text-align:left;">
+                      백색잡음
+                      </td>
+                      <td style="text-align:left;">
+                      ARIMA(0,0,0)
+                      </td>
+                      </tr>
+                      <tr>
+                      <td style="text-align:left;">
+                      확률보행
+                      </td>
+                      <td style="text-align:left;">
+                      상수가 없는 ARIMA(0,1,0)
+                      </td>
+                      </tr>
+                      <tr>
+                      <td style="text-align:left;">
+                      표류를 포함하는 확률보행
+                      </td>
+                      <td style="text-align:left;">
+                      상수가 있는 ARIMA(0,1,0)
+                      </td>
+                      </tr>
+                      <tr>
+                      <td style="text-align:left;">
+                      자기회귀
+                      </td>
+                      <td style="text-align:left;">
+                      ARIMA(<script type="math/tex" id="MathJax-Element-9">p</script>,0,0)
+                      </td>
+                      </tr>
+                      <tr>
+                      <td style="text-align:left;">
+                      이동평균
+                      </td>
+                      <td style="text-align:left;">
+                      ARIMA(0,0,<script type="math/tex" id="MathJax-Element-10">q</script>)
+                      </td>
+                      </tr>
+                      </tbody>
+                      </table>
+                      <p>이러한 방식으로 더욱 복잡한 모델을 만들기 위해 성분을 결합할 때, 후방이동(backshift) 기호를 쓰면 훨씬 쉬워집니다. 예를 들어, 식 (8.1)은 후방이동 기호를 이용해서 다음과 같이 쓸 수 있습니다.
+                       <script type="math/tex; mode=display" id="MathJax-Element-11">\begin{equation}
+                        \tag{8.2}
+                          \begin{array}{c c c c}
+                            (1-\phi_1B - \cdots - \phi_p B^p) & (1-B)^d y_{t} &= &c + (1 + \theta_1 B + \cdots + \theta_q B^q)\varepsilon_t\\
+                            {\uparrow} & {\uparrow} & &{\uparrow}\\
+                            \text{AR($p$)} & \text{$d$ differences} & & \text{MA($q$)}\\
+                          \end{array}
+                        \end{equation}</script></span></p>
+
+                        <a href="https://otexts.com/fppkr/non-seasonal-arima.html">[출처] - Forecasting: Principles and Practice : 8.5 비-계절성 ARIMA 모델(https://otexts.com/fppkr/non-seasonal-arima.html)</a>
+              </article>
+          </div>
+            </br>
+            <div>
+              <article>
+                <h2>예측의 활용법</h2>
+                <p>
+                  현재 보고 계신 서비스의 예측은 추후 5일 간 종가의 '평균적인' 움직임을 나타냅니다.
+                </p>
+                <p>
+                  예를들어 ARIMA(0,1,0) 모형은 종가의 움직임을 임의보행(Random Walk)으로 예측하기 때문에, 주가 변동의 평균은 마지막 날의 종가에 수렴하리라 예측합니다. 그에 따라 5일 예측이 직선으로 나타납니다.
+                  다시말해 ARIMA 모형은 평균과 동떨어진 주가의 변동을 예측하지 못합니다.
+                </p>
+                <p>
+                  본 서비스의 결과를 맹신하지는 마시고, 다만 참고해주시기를 바랍니다! 
+                </p>
+              </article>
+        </div>
+      
+
+      </main>
+    </div>
+    </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js" integrity="sha384-zNy6FEbO50N+Cg5wap8IKA4M/ZnLJgzc6w2NqACZaK0u0FXfOWRRJOnQtpZun8ha" crossorigin="anonymous"></script><script src="dashboard.js"></script>
+</body>
+</html>
