@@ -1,7 +1,7 @@
 
 # 1. git 명령어 모음
 
-![post-thumbnail](/images/git_thum_nail.png)
+![post-thumbnail](/images/git_thumbnail.png)
   ### **Git 설치 (for ubuntu)
 
 1) 터미널 (ctrl + Alt + T)  
