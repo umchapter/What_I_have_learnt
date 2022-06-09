@@ -4,7 +4,7 @@
 기본적 분석모형의 연습 경험은 아래를 통해 보실 수 있습니다.
 
 <details>
-<summary>(스압주의) 펼치기/접기</summary>
+<summary>(스압주의) 머신러닝 학습 내역 펼치기/접기</summary>
 <div markdown="1">
 
 ## iris_classification
@@ -5640,6 +5640,593 @@ visualize_silhouette([2,3,4,5], iris.data)
 </br>
 
 
+</div>
+</details>
+
+</br>
+
+<details>
+<summary>(스압주의) 머신러닝 학습 내역 펼치기/접기</summary>
+<div markdown="1">
+	
+딥러닝 기초
+===
+## 머신러닝
+* 데이터를 이용해 미지의 일을 예측하기 위해 만들어진 기법
+* 일반적인 프로그램이 데이터를 넣어서 답을 도출하는 과정이라면,   
+  데이터를 통해 규칙을 찾아내는 것이 머신러닝의 본질적 과정.
+## 학습(training)
+* 데이터가 입력되고 패턴이 분석되는 과정
+* 예시 :
+  1. 기존 환자 데이터를 입력(진료 기록과 사망·생존 여부)
+  2. 머신러닝으로 학습(규칙 발견)
+  3. 새로운 환자 예측
+* 랜덤포레스트, SVM, DeepLearning 등 려러가지 머신러닝 기법들이 존재
+## 예제를 통한 이해
+### 데이터 살펴보기 : ThoraricSurgery.csv
+* shape = (470, 18)
+* 속성(attribute), 특성(feature) X : 수술 환자 기록 17개 변수(종양 유형, 폐활량, 호흡곤란 여부 등)
+* 클래스 Y : 생존/사망
+* 딥러닝을 구동시키려면 '속성'만을 뽑아 데이터셋을 만들고, '클래스'를 담는 데이터셋을 또 따로 만들어 줘야 함
+
+<details>
+<summary>예제 코드 펼치기/접기</summary>
+<div markdown="1">
+
+```python
+# 딥러닝을 구동하는 데 필요한 케라스 함수를 불러옴
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# 필요한 라이브러리를 불러옴
+import numpy as np
+import tensorflow as tf
+
+# 실행할 때마다 같은 결과를 출력하기 위해 시드 설정
+np.random.seed(3)
+tf.random.set_seed(3)
+
+# 준비된 수술 환자 데이터를 불러들임
+Data_set = np.loadtxt("./csv_data/ThoraricSurgery.csv", delimiter=",")
+
+# 환자의 기록과 수술 결과를 X와 Y로 구분하여 저장
+X = Data_set[:,0:17]
+Y = Data_set[:, 17]
+
+# 딥러닝 구조를 결정함(모델을 설정하고 실행하는 부분)
+model = Sequential()
+model.add(Dense(30, input_dim=17, activation="relu"))
+model.add(Dense(1, activation="sigmoid"))
+
+# 딥러닝을 실행함
+model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
+model.fit(X, Y, epochs=100, batch_size=10)
+```
+
+</div>
+</details>
+
+</br>
+
+* loss는 예측이 실패할 확률, accuracy는 예측이 성공할 확률.
+* 예측 성공률은 데이터를 분석해 데이터를 확장하거나, 딥러닝 구조를 적절하게 바꾸는 등의 노력으로 더 향상될 수 있음.
+* 뿐만 아니라 학습에 사용되지 않은 데이터를 따로 모아 테스트를 해보면서 예측 성공률이 정말로 가능한지를 확인하는 과정까지 거치게 됨.
+* 이러한 '최적화 과정'을 진행하려면 딥러닝의 구동 원리를 이해해야 함
+
+### 과정
+* Sequential()함수는 딥러닝의 구조를 한층한층 쉽게 쌓아올릴 수 있게 해 줌.
+* Sequential()함수를 선언하고 나서 model.add()함수를 사용해 필요한 층을 차례로 추가하면 됨.
+* 위의 코드에서 model.add()함수를 이용해 두 개의 층을 쌓아 올림.
+  * activation : 다음 층으로 어떻게 값을 넘길지 결정하는 부분.   
+  가장 많이 사용되는 함수 : relu() 함수, sigmoid() 함수.
+  * loss : 한 번 신경망이 실행될 때마다 오차 값을 추적하는 함수.
+  * optimizer : 오차를 어떻게 줄요 나갈지 정하는 함수.
+* 층의 개수는 데이터에 따라 결정.
+* 딥러닝의 구조와 층별 옵션을 정하고 나면 complie()함수를 이용해 이를 실행
+* 입력값이 네트워크 층을 거치면 예측값을 나오고, 이를 실제값과 비교해서 Loss Score를 계산한 후에 Optimizer를 통해 Weight를 업데이트 함.
+#### 기타 예제
+
+<details>
+<summary>예제 코드 펼치기/접기</summary>
+<div markdown="1">
+
+```python
+import tensorflow as tf
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# 가상적인 데이터 생성
+X = data = np.linspace(1, 2, 200)   # 시작값=1, 종료값=2, 개수=200
+y = X * 4 + np.random.randn(200) * 0.3  # x를 4배로 하고 편차 0.3 정도의 가우시간 잡음 추가
+
+model = Sequential()
+model.add(Dense(1, input_dim=1, activation="linear"))
+model.compile(optimizer="sgd", loss="mse", metrics=["mse"])
+model.fit(X, y, batch_size=1, epochs=30)
+
+predict = model.predict(data)
+
+plt.plot(data, predict, "b", data, y, "k.")   #첫번째 그래프는 파란색 마커로
+plt.show()
+# 두번째 그래프는 검정색 "."으로 그린다.
+```
+</div>
+</details>
+
+</br>
+
+오차 수정
+===
+경사 하강법
+---
+### 1. 경사 하강법의 개요
+* a를 무한대로 키우거나 a를 무한대로 작게 할 때 오차도 무한대로 커지는 관계를 이차함수 그래프로 표현할 수 있음.
+$$y=ax+b$$
+<center>
+
+평균제곱오차$(MSE) = \frac{1}{n}\Sigma(\hat{y}_i-y_i)^2$
+</center>
+
+* 컴퓨터를 이용해 optimum을 찾으려면 임의의 한 점 $a_1$을 찍고, 이 점을 optimum에 가까운 쪽으로 점점 이동시키는 과정$(a_1 \rarr a_2 \rarr a_3)$이 필요함.
+* 경사 하강법(gradient descent)   
+  : 미분 기울기를 이용해서 그래프에서 오차를 비교하여 가장 작은 방향으로 이동시키는 방법.
+  * 순간 변화율이 $0$인 점이 optimum.(2차 함수의 경우.)
+  * $\therefore$ 임의의 점 $a_1$의 미분 값이 양$(+)$이면 음의 방향, 미분 값이 음$(-)$이면 양의 방향으로 얼마간 이동시킨 $a_2$에서 또다시 미분 값을 구함.
+  * 이 과정을 반복해 기울기가 $0$인 optimum을 찾음. 
+### 2. 학습률(Learning Rate)
+* 학습률(learning rate)   
+  : 어느 만큼 이동시킬지를 신중히 결정해야 하는데, 이때 이동 거리를 정해주는 것.
+* DL에서 학습률의 값을 적절히 바꾸면서 최적의 학습률을 찾는 것은 중요한 __최적화(optimization)__ 과정.
+
+$$MSE = \frac{1}{n}\sum(\hat{y}_i-y_i)^2$$
+$$\frac{1}{n}\Sigma(\hat{y}_i-y_i)^2 = \frac{1}{n}\Sigma((ax_i+b)-y_i)^2, (\because\hat{y}_i = ax_i+b)$$
+<center>
+
+$a$로 편미분 한 결과 : $\frac{\partial{MSE}}{\partial{a}}=\frac{2}{n}\sum(ax_i+b-y_i)x_i$
+</center>
+<center>
+
+$b$로 편미분 한 결과 : $\frac{\partial{MSE}}{\partial{b}}=\frac{2}{n}\sum(ax_i+b-y_i)$
+</center>
+
+### 3. 코딩으로 확인하는 경사 하강법
+
+<details>
+<summary>실습 코드 펼치기/접기</summary>
+<div markdown="1">
+
+```python
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# 공부시간 x와 성적 y의 리스트를 만듦
+data = [[2,81], [4,93], [6,91], [8,97]]
+x = [i[0] for i in data]
+y = [i[1] for i in data]
+
+# 그래프로 나타냄.
+plt.figure(figsize=(8,5))
+plt.scatter(x,y)
+plt.show()
+```
+```python
+# 리스트로 되어 있는 x와 y값을 넘파이 배열로 바꾸어 줌.
+# 인덱스를 주어 하나씩 불러와 계산이 가능하도록 하기 위함.
+
+x_data = np.array(x)
+y_data = np.array(y)
+
+# 기울기 a와 절편 b의 값을 초기화 함
+a = 0
+b = 0
+
+# 학습률을 결정
+lr = 0.03
+
+# 반복 횟수 결정. 오차수정(경사하강법) 횟수
+epochs = 2001
+
+# 경사 하강법을 시작
+for i in range(epochs) :
+    y_hat = a * x_data + b
+    error = y_data - y_hat
+    a_diff = -(2/len(x_data)) * sum(x_data * (error))   # 오차함수를 a로 미분한 값.
+    b_diff = -(2/len(x_data)) * sum(error)    # 오차함수를 b로 미분한 값.
+    a = a - lr * a_diff # 학습률을 반영하여 업데이트
+    b = b - lr * b_diff
+    if i % 100 == 0 :
+        print(f"epoch={i}, 기울기={a:.3f}, 절편={b:.4f}")
+```
+```python
+# 앞서 구한 기울기와 절편을 이용해 그래프를 그려 봄
+y_pred = a * x_data + b
+plt.scatter(x, y)
+plt.plot([min(x_data), max(x_data)], [min(y_pred), max(y_pred)])
+plt.show()
+```
+
+</div>
+</details>
+
+</br>
+
+### 4. 다중선형 회귀란
+* w 파라미터의 개수가 적다면 고차원 방정식으로 비용 함수가 되는 w 변숫값을 도출할 수 있겠지만, w 파라미터가 많으면 고차원 방정식을 동원하더라도 해결하기 어려움. 경사 하강법은 이러한 고차원 방정식에 대한 문제를 해결해주면서 비용 함수 RSS를 최소화하는 방법을 직관적으로 제공하는 뛰어난 방식.
+* $R(w)$는 변수가 w 파라미터로 이루어진 함수.
+$$R(w) = \frac{1}{N}\displaystyle\sum_{i=1}^n(y_i-(w_0+w_1*x_i))^2$$
+<center>
+
+$\displaystyle\frac{\partial{R(w)}}{\partial{w_1}}=\frac{2}{N}\displaystyle\sum_{i=1}^n-x_i(y_i-(w_0+w_1x_i))=-\frac{2}{N}\displaystyle\sum_{i=1}^nx_i*$(실제값$_i-$예측값$_i$)
+
+$\displaystyle\frac{\partial{R(w)}}{\partial{w_0}}=\frac{2}{N}\displaystyle\sum_{i=1}^n-(y_i-(w_0+w_1x_i))=-\frac{2}{N}\displaystyle\sum_{i=1}^n$(실제값$_i-$예측값$_i$)
+</center>
+
+* $w_1, w_0$의 편미분 결과값인 $-\frac{2}{N}\displaystyle\sum_{i=1}^nx_i*$(실제값$_i-$예측값$_i$) 와 $-\frac{2}{N}\displaystyle\sum_{i=1}^n$(실제값$_i-$예측값$_i$) 을 반복적으로 보정하면서 $w_1, w_0$값을 업데이트 하면 비용함수 $R(w)$가 최소가 되는 $w_1, w_0$값을 구할 수 있음. 하지만 실제로는 앞의 편미분 값이 너무 클 수 있기 때문에 보정계수 $\eta$를 곱함 $\rarr$ "학습률"
+  * 새로운 $w_1 =$ 이전 $w_1 - \eta\frac{2}{N}\displaystyle\sum_{i=1}^nx_i*$(실제값$_i-$예측값$_i$)
+  * 새로운 $w_0 =$ 이전 $w_0 - \eta\frac{2}{N}\displaystyle\sum_{i=1}^n$(실제값$_i-$예측값$_i$)
+  * 비용 함수의 값이 감소했으면 다시 $w_1, w_0$를 업데이트 하여 다시 비용 함수의 값 계산. 더 이상 비용 함수의 값이 감소하지 않으면 그 때의 $w_1, w_0$를 구하고 반복을 중지함.
+### 5. 코딩으로 확인하는 다중 선형 회귀
+
+<details>
+<summary>실습 코드 펼치기/접기</summary>
+<div markdown="1">
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+
+np.random.seed(0)
+# y = 4X + 6 식을 근사(w1 = 4, w0 = 6). random 값은 Noise를 위해 만듦.
+X = 2 * np.random.rand(100,1)
+y = 6 + 4 * X + np.random.randn(100, 1)
+
+# X , y 데이터 셋 scatter plot으로 시각화
+print(X.shape, y.shape)
+plt.scatter(X, y)
+```
+
+* $w_0$와 $w_1$의 값을 최소화 할 수 있도록 업데이트를 수행하는 함수 생성.
+  * 예측 배열 y_pred는 np.dot(X,w1.T) + w0임. 100개의 데이터 X(1,2,$\dots$,100)이 있다면 예측값 $w_0 + X_1w_1 + X_2w_1 + \dots + X_{100}w_1$이며, 이는 입력 배열 X와 $w_1$ 배열의 내적임.
+  * 새로운 $w_1$과 $w_0$를 update함
+
+```python
+# w1과 w0 를 업데이트 할 w1_update, w0_update를 반환.
+def get_weight_updates(w1, w0, X, y, learning_rate=0.01) :
+    N = len(y)
+    # 먼저 w1_update, w0_update를 각각 w1, w0의 shape와 동일한 크기를 가진 0 값으로 초기화
+    w1_update = np.zeros_like(w1)
+    w0_update = np.zeros_like(w0)
+    # 예측 배열 계산하고 예측과 실제 값의 차이 계산
+    y_pred = np.dot(X, w1.T) + w0
+    diff = y - y_pred
+
+    # w0_update를 dot 행렬 연산으로 구하기 위해 모두 1값을 가진 행렬 생성
+    w0_factors = np.ones((N,1))
+
+    # w1과 w0를 업데이트할 w1_update와 w0_update 계산
+    w1_update = -(2/N)*learning_rate*(np.dot(X.T, diff))
+    w0_update = -(2/N)*learning_rate*(np.dot(w0_factors.T, diff))
+
+    return w1_update, w0_update
+```
+```python
+w0 = np.zeros((1,1))
+w1 = np.zeros((1,1))
+y_pred = np.dot(X, w1.T) + w0
+diff = y - y_pred
+print(diff.shape)
+
+w0_factors = np.ones((100,1))
+w1_update = -(2/100)*0.01*(np.dot(X.T, diff))
+w0_update = -(2/100)*0.01*(np.dot(w0_factors.T, diff))
+print(w1_update.shape, w0_update.shape)
+w1, w0
+```
+
+* 반복적으로 경사 하강법을 이용하여 get_weight_updates()를 호출하여 $w_1$과 $w_0$를 업데이트 하는 함수 생성
+
+```python
+# 입력 인자 iters로 주어진 횟수만큼 반복적으로 w1과 w0를 업데이트 적용함.
+def gradient_descent_steps(X, y, iters=10000) :
+    # w0와 w1을 모두 0으로 초기화.
+    w0 = np.zeros((1,1))
+    w1 = np.zeros((1,1))
+
+    # 인자로 주어진 iters 만큼 반복적으로 get_weight_updates() 호출하여 w1, w0 업데이트 수행
+    for ind in tqdm(range(iters)) :
+        w1_update, w0_update = get_weight_updates(w1, w0, X, y, learning_rate=0.01)
+        w1 = w1 - w1_update
+        w0 = w0 - w0_update
+    
+    return w1, w0
+```
+
+* 예측 오차 비용을 계산하는 함수 생성 및 경사 하강법 수행
+
+```python
+def get_cost(y, y_pred) :
+    N = len(y)
+    cost = np.sum(np.square(y - y_pred))/N
+    return cost
+
+w1, w0 = gradient_descent_steps(X, y, iters=1000)
+print(f"w1:{w1[0,0]:.3f}, w0:{w0[0,0]:.3f}")
+y_pred = w1[0,0] * X + w0
+print(f"Gradient Descent Total Cost : {get_cost(y, y_pred):.4f}")
+```
+
+```python
+# 시각화
+plt.scatter(X, y)
+plt.plot(X, y_pred)
+```
+
+* 확률적 경사하강법 함수 작성
+
+```python
+def stochastic_gradient_descent_steps(X, y, batch_size=10, iters=1000) :
+    w0 = np.zeros((1,1))
+    w1 = np.zeros((1,1))
+    prev_cost = 100000
+    iter_index = 0
+
+    for ind in tqdm(range(iters)) :
+        np.random.seed(ind)
+        # 전체 X, y 데이터에서 랜덤하게 batch_size만큼 데이터 추출하여 sample_X, smaple_y로 저장
+        stochastic_random_index = np.random.permutation(X.shape[0])
+        sample_X = X[stochastic_random_index[0:batch_size]]
+        sample_y = y[stochastic_random_index[0:batch_size]]
+
+        # 랜덤하게 batch_size만큼 추출된 데이터 기반으로 w1_update, w0_update 계산 후 업데이트
+        w1_update, w0_update = get_weight_updates(w1, w0, sample_X, sample_y, learning_rate=0.01)
+        w1 = w1 - w1_update
+        w0 = w0 - w0_update
+
+    return w1, w0
+```
+
+```python
+w1, w0 = stochastic_gradient_descent_steps(X, y, iters=1000)
+print(f"w1 : {round(w1[0,0], 3)}, w0 : {round(w0[0,0], 3)}")
+y_pred = w1[0,0] * X + w0
+print(f"Stochastic Gradient Descent Total Cost : {get_cost(y, y_pred):.4f}")
+```
+
+* 더 정확한 예측을 하려면 추가 정보를 입력해야 하며, 정보를 추가해 새로운 예측값을 구하려면 변수의 개수를 늘려 다중 선형 회귀를 만들어 주어야 함.
+  * 기존의 독립변수 '공부한시간'$(x_1)$ 외에 '과외 수업 횟수'$(X_2)$ 변수를 추가해서 종속변수 '성적'$(y)$ 예측
+  <table>
+    <tr>
+      <th>
+          공부한 시간(x_1)
+      </th>
+      <td>
+          2
+      </td>
+      <td>
+          4
+      </td>
+      <td>
+          6
+      </td>
+      <td>
+          8
+      </td>
+    </tr>
+    <tr>
+      <th>
+          과외 수업 횟수(x_2)
+      </th>
+      <td>
+          0
+      </td>
+      <td>
+          4
+      </td>
+      <td>
+          2
+      </td>
+      <td>
+          3
+      </td>
+    </tr>
+    <tr>
+      <th>
+          성적(y)
+      </th>
+      <td>
+          81
+      </td>
+      <td>
+          93
+      </td>
+      <td>
+          91
+      </td>
+      <td>
+          97
+      </td>
+    </tr>
+  </table>
+  
+* 이를 이용한 종속 변수 $y$를 만들 경우 다음과 같은 식이 나옴.
+$$ y = a_1x_1 + a_2x_2 + b $$
+* 경사 하강법을 이용하여 $a_1, a_2$를 구함.
+
+```python
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
+
+# 공부시간 x와 y의 리스트를 만듦
+# 이번에는 독립변수 x의 값이 두 개이므로 다음과 같이 리스트 작성
+data = [[2,0,81], [4,4,93], [6,2,91], [8,3,97]]
+x1 = [i[0] for i in data]
+x2 = [i[1] for i in data]
+y = [i[2] for i in data]
+
+# 그래프로 확인
+ax = plt.axes(projection="3d")
+ax.set_xlabel("study_hours")
+ax.set_ylabel("private_class")
+ax.set_zlabel("Score")
+ax.dist = 11
+ax.scatter(x1, x2, y)
+plt.show()
+```
+
+```python
+from tqdm import tqdm
+# 리스트로 되어 있는 x와 y값을 넘파이 배열로 바꾸어 줌.
+# 인덱스를 주어 하나씩 불러와 계산이 가능하도록 하기 위함.
+
+x1_data = np.array(x1)
+x2_data = np.array(x2)
+y_data = np.array(y)
+
+# 기울기 a와 절편 b의 값을 초기화 함
+a1 = 0
+a2 = 0
+b = 0
+
+# 학습률을 결정
+lr = 0.02
+
+# 반복 횟수 결정. 오차수정(경사하강법) 횟수
+epochs = 2001
+
+# 경사 하강법을 시작
+for i in tqdm(range(epochs)) :
+    y_hat = a1 * x1_data + a2 * x2_data + b
+    error = y_data - y_hat
+    a1_diff = -(2/len(x1_data)) * sum(x1_data * (error))   # 오차함수를 a1로 미분한 값.
+    a2_diff = -(2/len(x2_data)) * sum(x2_data * (error))   # 오차함수를 a2로 미분한 값.
+    b_new = -(2/len(x1_data)) * sum(error)    # 오차함수를 b로 미분한 값. len(x1_data) = N.
+    a1 = a1 - lr * a1_diff # 학습률을 반영하여 업데이트
+    a2 = a2 - lr * a2_diff
+    b = b - lr * b_new
+    if i % 100 == 0 :
+        print(f"epoch={i}, 기울기1={a1:.3f}, 기울기2={a2:.3f}, 절편={b:.4f}")
+```
+
+* 2차원 예측 직선이 3차원 '예측 평면'으로 바뀜.
+* 2차원 직선에서만 움직이던 예측 결과가 더 넓은 평면 범위 안에서 움직이게 됨.
+* 이로 인해 좀 더 정밀한 예측을 할 수 있게 됨.
+
+</div>
+</details>
+
+</br>
+
+참 거짓 판단장치
+===
+로지스틱 회귀
+---
+### 1. 로지스틱 회귀의 정의
+* 전달받은 정보를 놓고 참과 거짓 중에 하나를 판단해 다음 단계로 넘기는 장치들이 딥러닝 내부에서 쉬지 않고 작동함
+* 딥러닝을 수행한다는 것은 겉으로 드러나지 않는 '미니 판단 장치'들을 이용해서 복잡한 연산을 해낸 끝에 최적의 예측 값을 내놓는 작업
+* 참인지 거짓인지를 구분하는 로지스틱 회귀의 원리를 이용해 '참, 거짓 미니 판단 장치'를 만들어, 주어진 입력 값의 특징을 추출함(학습, train). 이를 저장해서 '모델(model)'을 만듦.
+* 누군가 비슷한 질문을 하면 지금까지 만들어 놓은 이 모델을 꺼내어 답을 함(예측, prediction) 이것이 딥러닝의 동작 원리.
+* 직선으로 해결하기에는 적절하지 않은 경우도 있음.
+  * 점수가 아니라 오직 합불만 발표되는 시험이 있다고 가정함.
+    * 합격을 1, 불합격을 0이라고 하고, 좌표평면 상에서 나타내면 직선으로 분포를 나타내기 어려움.
+    * 점들의 특성을 정확하게 담아내려면 직선이 아닌 S자 형태가 필요 $\rarr$ 시그모이드 함수 등
+* 로지스틱 회귀 :   
+  선형 회귀와 마찬가지로 적절한 선을 그려가는 과정
+  * 다만 직선이 아니라, 참(1)과 거짓(0) 사이를 구분하는 S자 형태의 선을 그어주는 작업.
+### 2. 시그모이드 함수
+* 시그모이드 함수(sigmoid function) : S자 형태로 그래프가 그려지는 함수 $\rarr$ 로지스틱 회귀를 위해서는 시그모이드 함수가 필요
+$$Sigmoid : y = \frac{1}{1+e^{-(ax+b)}}$$
+  * a는 그래프의 경사도를 결정함.
+    * a값이 커지면 그래프의 경사가 커지고, a값이 작아지면 그래프의 경사가 작아짐.  
+  * b는 그래프의 좌우 이동을 결정함. 
+    * b값이 커지면 그래프가 왼쪽으로 이동하고, b값이 작아지면 그래프가 오른쪽으로 이동함. 
+### 3. 오차 공식
+* a와 오차와의 관계 :
+  * a가 작아질수록 오차는 무한대로 커짐
+  * 하지만 a가 커진다고 해서 오차가 없어지지는 않음.
+* b와 오차와의 관계:
+  * b값이 너무 작아지거나 커지면 오차도 이에 따라 커짐.
+* 시그모이드 함수에서 a, b 값을 구하는 방법 역시 경사하강법.
+  * 경사 하강법은 먼저 오차를 구한 다음 오차가 작은 쪽으로 이동시키는 방법이므로 여기서도 오차(예측값과 실제 값의 차이)를 구하는 공식이 필요.
+### 4. 로그 함수
+* 시그모이드 함수의 특징은 y값이 0과 1 사이라는 것.
+  * 실제 값이 1일 때 예측 값이 0에 가까워지면 오차가 커짐.
+  * 반대로, 실제값이 0일 때 예측 값이 1에 가까워지는 경우에도 오차는 커짐.
+* 이를 공식으로 만들 수 있게 해주는 함수가 바로 로그 함수.
+$$-[y_{data}\log{h}+(1-y_{data})\log{(1-h)}]$$
+* 실제 값이 1이면 뒷부분$((1-y_{data})\log{(1-h)})$이 없어지고, 실제 값이 0이면 앞부분$(y_{data}\log{h})$이 없어짐.
+* 실제 값에 따라 앞부분과 뒷부분 각각의 그래프를 사용할 수 있음.
+### 5. 코딩으로 확인하는 로지스틱 회귀
+
+<details>
+<summary>실습 코드 펼치기/접기</summary>
+<div markdown="1">
+
+```python
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+
+# 공부시간 x와 성적 y의 리스트를 만듦
+data = [[2,0], [4,0], [6,0], [8,1], [10,1], [12,1], [14,1]]
+
+x_data = [i[0] for i in data]
+y_data = [i[1] for i in data]
+
+# 그래프로 나타냄.
+plt.scatter(x_data, y_data)
+plt.xlim(0, 15)
+plt.ylim(-.1, 1.1)
+plt.show()
+```
+```python
+# 기울기 a와 절편 b의 값을 초기화
+a = 0
+b = 0
+
+# 학습률을 정함
+lr = 0.05
+
+# 시그모이드 함수를 정의
+def sigmoid(x) :
+    return 1 / (1 + np.e ** (-x))
+
+# 경사 하강법을 실행
+for i in tqdm(range(2001)) :
+    for x_data, y_data in data :
+        a_diff = x_data * (sigmoid(a*x_data + b) - y_data)
+        b_diff = sigmoid(a*x_data + b) - y_data
+        a = a - lr * a_diff
+        b = b - lr * b_diff
+        if i % 1000 == 0 :
+            print(f"epoch={i}, slope={a:.3f}, intercept={b:.4f}")
+```
+* 시그모이드 형태의 함수가 잘 만들어지도록 a와 b의 값이 수렴된 것을 알 수 있음.
+* 만약 여기에 입력 값이 추가되어 세 개 이상의 입력 값을 다룬다면(__다중 분류 문제__) 시그모이드 함수가 아니라 __소프트맥스(softmax)__라는 함수를 써야 함
+* Sigmoid에서 시작된 활성화 함수는 ReLU를 비롯해 다양한 종류가 있음.
+
+</div>
+</details>
+
+</br>
+
+### 6. 로지스틱 회귀에서 퍼셉트론으로
+* 입력 값을 통해 출력 값을 구하는 함수 $y$는 다음과 같이 표현할 수 있음
+$$y = a_1x_1 + a_2x_2 + b$$
+  * 입력 값 : 우리가 가진 값인 $x_1, x_2$
+  * 출력 값 : 계산으로 얻는 값 $y \rarr$ 출력 값 $y$를 구하려면 가중치(weight) $a_1$값, $a_2$값 그리고 편향(bias) $b$값이 필요함.
+* $x_1$과 $x_2$가 입력되고, 각각 가중치 $a_1, a_2$를 만남. 여기에 $b$값을 더한 후 시그모이드 함수를 거쳐 1 또는 0의 출력값 $y$를 출력함.
+* 프랑크 로젠플라트가 퍼셉트론(perceptron)이라는 이름을 붙임.
+* 퍼셉트론은 이후 인공신경망(ANN), 오차 역전파 등의 발전을 거쳐 지금의 딥러닝으로 발전됨.
+
+
+	
 </div>
 </details>
 
