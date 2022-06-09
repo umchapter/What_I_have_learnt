@@ -5009,6 +5009,635 @@ print(clusterDF.groupby("target")["kmeans_label"].value_counts())
 
 </br>
 
+실습
+===
+신용카드 연체 예측 데이터 PCA
+---
+
+<details>
+<summary>코드 펼치기/접기</summary>
+<div markdown="1">
+
+### 1. credit card 데이터 세트 변환
+* 신용카드 연체 예측(UCI credit card default data)
+* 데이터 전처리 : 컬럼명 변경, 속성/클래스 분류
+
+```python
+# 신용카드 연체 예측(UCI credit card default data)
+# 예제 : credit card 데이터 세트 변환
+# 데이터 로드
+import pandas as pd
+
+df = pd.read_csv("./csv_data/UCI_Credit_Card.csv", encoding="CP949")
+```
+```python
+# 데이터 정보 확인
+df.info()
+# X1: Amount of the given credit (NT dollar): it includes both the individual consumer credit and his/her family (supplementary) credit.
+# X2: Gender (1 = male; 2 = female).
+# X3: Education (1 = graduate school; 2 = university; 3 = high school; 4 = others).
+# X4: Marital status (1 = married; 2 = single; 3 = others).
+# X5: Age (year).
+# X6 - X11: History of past payment. We tracked the past monthly payment records (from April to September, 2005) as follows: X6 = the repayment status in September, 2005; X7 = the repayment status in August, 2005; . . .;X11 = the repayment status in April, 2005. The measurement scale for the repayment status is: -1 = pay duly; 1 = payment delay for one month; 2 = payment delay for two months; . . .; 8 = payment delay for eight months; 9 = payment delay for nine months and above.
+# X12-X17: Amount of bill statement (NT dollar). X12 = amount of bill statement in September, 2005; X13 = amount of bill statement in August, 2005; . . .; X17 = amount of bill statement in April, 2005.
+# X18-X23: Amount of previous payment (NT dollar). X18 = amount paid in September, 2005; X19 = amount paid in August, 2005; . . .;X23 = amount paid in April, 2005.
+```
+```python
+# 컬럼명 변경
+df = df.rename(columns={"PAY_0" : "PAY_1", "default.payment.next.month" : "default"})
+```
+```python
+# 속성과 클래스로 데이터 분류
+y_target = df["default"]
+X_features = df.drop("default", axis=1)
+```
+```python
+# 분산 공분산 행렬
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+corr = X_features.corr()
+corr
+```
+
+### 2. 피처 간 상관관계 살펴보기
+* 히트맵으로 피처 간 상관관계 시각화
+  * 과거 지불 금액간 상관관계 높음.
+  * 과거 청구 금액간 상관관계는 더 높음.
+  * 상관도가 높은 피처들 간에는 PCA 효율이 좋음.
+
+```python
+plt.figure(figsize=(14,14))
+sns.heatmap(corr, annot=True, fmt=".1g")
+```
+
+### 3. 일부 피처들 PCA 변환(n_components=2)
+* 일부 상관도가 높은 피처들(BILL_AMT1~6)을 PCA(n_components=2) 변환 후 변동성 확인
+
+```python
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+# BILL_AMT1 ~ BILL_AMT6 까지 6개의 속성명 생성
+cols_bill = ["BILL_AMT" + str(i) for i in range(1, 7)]
+print(f"대상 속성명 : {cols_bill}")
+
+# 2개의 PCA 속성을 가진 PCA 객체 생성하고, explained_variance_ratio_ 계산 위해 fit() 호출
+scaler = StandardScaler()
+df_cols_scaled = scaler.fit_transform(X_features[cols_bill])
+pca_2 = PCA(n_components=2)
+pca_2.fit(df_cols_scaled)
+
+df_bill=pca_2.transform(df_cols_scaled)
+
+print(f"PCA Component별 변동성 : {pca_2.explained_variance_ratio_}")
+
+# 6개의 피처를 2개의 피처로 PCA 변환했을 때 첫번째 컴포넌트가 전체 변동성의 90%를 설명함.
+```
+
+```python
+# PAY의 경우
+cols_pay = ["PAY_AMT" + str(i) for i in range(1, 7)]
+print(f"대상 속성명 : {cols_pay}")
+
+# 2개의 PCA 속성을 가진 PCA 객체 생성하고, explained_variance_ratio_ 계산 위해 fit() 호출
+scaler = StandardScaler()
+df_pay_cols_scaled = scaler.fit_transform(X_features[cols_pay])
+
+pca_pay_2 = PCA(n_components=2)
+pca_pay_2.fit(df_pay_cols_scaled)
+
+df_pay = pca_pay_2.transform(df_pay_cols_scaled)
+
+print(f"PCA Component별 변동성 : {pca_pay_2.explained_variance_ratio_}")
+
+# PAY 피처는 6개를 2개로 PCA 변환했을 때 첫번째 컴포넌트가 전체 변동성의 32%를 설명함.
+```
+
+### 4. 전체 피처들 PCA 변환(n_components=7)
+* 전체 원본 데이터와 PCA 변환된 데이터 간 랜덤 포레스트 예측 성능 비교
+
+```python
+# 1. 원본 데이터
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score
+
+rcf = RandomForestClassifier(n_estimators=300, random_state=156)
+
+# 원본 데이터일 때 랜덤 포레스트 예측 성능
+scores = cross_val_score(rcf, X_features, y_target, scoring="accuracy", cv=3)
+
+print(f"CV=3 인 경우의 개별 Fold세트별 정확도 : {scores}")
+print(f"평균 정확도 : {np.mean(scores):.4f}")
+```
+### 5. PCA 수행한 새로운 데이터 프레임 분석
+
+```python
+# PCA 결과 확인
+cols = cols_bill+cols_pay
+df_new = df.drop(cols, axis=1)
+
+PCA_BILL = pd.DataFrame(df_bill, columns=["PCA_BILL_1", "PCA_BILL_2"])
+PCA_PAY = pd.DataFrame(df_pay, columns=["PCA_PAY_1", "PCA_PAY_2"])
+
+df_new = df_new.merge(PCA_BILL, left_index=True, right_index=True)
+df_new = df_new.merge(PCA_PAY, left_index=True, right_index=True)
+df_new
+```
+```python
+# 불필요한 컬럼 삭제
+X_PCA_features = df_new.drop(["default"], axis=1)
+```
+```python
+rcf = RandomForestClassifier(n_estimators=300, random_state=156)
+
+# pca 수행 후 성능 측정
+scores_pca = cross_val_score(rcf, X_PCA_features, y_target, scoring="accuracy", cv=3)
+
+print(f"CV=3 인 경우의 PCA 변환 후 개별 Fold세트별 정확도 : {scores_pca}")
+print(f"PCA 변환 시 평균 정확도 : {np.mean(scores_pca):.4f}")
+
+# 원본의 경우
+# CV=3 인 경우의 개별 Fold세트별 정확도 : [0.257  0.8209 0.784 ]
+# 평균 정확도 : 0.6206
+```
+
+</div>
+</details>
+
+</br>
+
+LDA(Linear Discriminant Analysis)
+===
+* LDA는 선형 판별 분석법으로 불리며, PCA와 매우 유사함.
+* LDA는 PCA와 유사하게 입력 데이터 세트를 저차원 공간에 투영해 차원을 축소하는 기법.   
+  중요한 차이는 LDA는 지도학습의 분류(Classification)에서 사용하기 쉽도록 개별 클래스를 분별할 수 있는 기준을 최대한 유지하면서 차원을 축소함.   
+  PCA는 입력 데이터의 변동성이 가장 큰 축을 찾지만, LDA는 입력 데이터의 결정 값 클래스를 최대한으로 분리할 수 있는 축을 찾음
+* LDA는 같은 클래스의 데이터는 최대한 근접해서, 다른 클래스의 데이터는 최대한 떨어뜨리는 축을 매핑함.
+<center>
+<img src="C:/Users/user/Desktop/Vocational_Training/FinTech/images/LDA.png">
+</center>
+
+## LDA 차원 축소 방식
+* LDA는 특정 공간상에서 클래스 분리를 최대화하는 축을 찾기 위해 클래스 간 분산(between-class scatter)과 클래스 내부 분산(within-calss scatter)의 비율을 최대화하는 방식으로 차원을 축소함.
+* 즉, 클래스 간 분산은 최대한 크게 가져가고, 클래스 내부의 분산은 최대한 작게 가져가는 방식.
+<center>
+<img src="C:/Users/user/Desktop/Vocational_Training/FinTech/images/LDA_variance.png">
+</center>
+
+## LDA 절차
+* 일반적으로 LDA를 구하는 스탭은 PCA와 유사하나, 가장 큰 차이점은 공분산 행렬이 아니라 클래스 간 분산과 클래스 내부 분산 행렬을 생성한 뒤, 이 행렬에 기반해 고유벡터를 구하고 입력 데이터를 투영한다는 점임.
+1. 클래스 내부와 클래스 간 분산 행렬을 구함.   
+  이 두 개의 행렬은 입력 데이터의 결정 값 클래스별로 개별 피처의 평균 벡터(mean vector)를 기반으로 구함.
+2. 클래스 내부 분산 행렬을 $S_W$, 클래스 간 분산 행렬을 $S_B$라고 하면 다음 식으로 두 행렬을 고유벡터로 분해할 수 있음.
+$$S_W^T S_B = \begin{bmatrix}e_1&\cdots&e_n\\ \end{bmatrix}\begin{bmatrix}\lambda_1&\cdots&0\\\vdots&\ddots&\vdots\\0&\cdots&\lambda_n \end{bmatrix}\begin{bmatrix}e_1\\\vdots\\{e_n} \end{bmatrix}$$
+3. 고유값이 가장 큰 순으로 K개(LDA변환 차수만큼) 추출함.
+4. 고유값이 가장 큰 순으로 추출된 고유벡터를 이용해 새롭게 입력 데이터를 변환함.
+
+### 실습 LDA
+
+<details>
+<summary>코드 펼치기/접기</summary>
+<div markdown="1">
+
+```python
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.preprocessing import StandardScaler
+from sklearn.datasets import load_iris
+
+iris = load_iris()
+iris_scaled = StandardScaler().fit_transform(iris.data)
+```
+```python
+# LDA를 이용해 2개 축을 추출
+lda = LinearDiscriminantAnalysis(n_components=2)
+
+# fit 호출시 target값 입력
+lda.fit(iris_scaled, iris.target)
+iris_lda = lda.transform(iris_scaled)
+print(iris_lda.shape)
+```
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+lda_columns = ["lda_component_1", "lda_component_2"]
+iris_df_lda = pd.DataFrame(iris_lda, columns=lda_columns)
+iris_df_lda["target"] = iris.target
+
+# setosa는 세모, versicolor는 네모, virginica는 동그라미로 표현
+markers=["^", "s", "o"]
+
+# setosa의 target 값은 0, versicolor는 1, virginica는 2, 각 target 별로 다른 shape로 scatter plot
+for i, marker in enumerate(markers) :
+    x_axis_data = iris_df_lda[iris_df_lda["target"]==i]["lda_component_1"]
+    y_axis_data = iris_df_lda[iris_df_lda["target"]==i]["lda_component_2"]
+
+    plt.scatter(x_axis_data, y_axis_data, marker=marker, label=iris.target_names[i])
+
+plt.legend(loc="upper right")
+plt.xlabel("lda_component_1")
+plt.ylabel("lda_component_2")
+plt.show()
+```
+
+</div>
+</details>
+
+</br>
+
+특이값 분해 SVD
+===
+## 대표적인 행렬 분해 방법
+### 고유값 분해(Eigen-Decomposition)
+$$C=P{\Lambda}P^T$$
+$$C = \begin{bmatrix}e_1&\cdots&e_n\\ \end{bmatrix}\begin{bmatrix}\lambda_1&\cdots&0\\\vdots&\ddots&\vdots\\0&\cdots&\lambda_n \end{bmatrix}\begin{bmatrix}e_1\\\vdots\\{e_n} \end{bmatrix}$$
+* 정방행렬만을 고유벡터로 분해.
+* PCA는 분해된 고유벡터에 원본 데이터를 투영하여 차원 축소.
+### 특이값 분해(Singular Value Decomposition)
+$$A=U{\Sigma}V^T$$
+* SVD는 정방행렬뿐만 아니라 행과 열의 크기가 다른 $m{\times}n$행렬도 분해 가능.
+* $U$ : 왼쪽 직교행렬, ${\Sigma}$ : 대각 행렬, $V^T$ : 오른쪽 직교행렬
+* 행렬 $U$와 $V$에 속한 벡터는 특이벡터(singular vector)이며, 모든 특이벡터는 서로 직교하는 성질을 가짐.
+$$U^TU=I$$
+$$V^TV=I$$
+* ${\Sigma}$는 대각행렬이며, 행렬의 대각에 위치한 값만 0이 아니고 나머지 위치의 값은 모두 0.
+* ${\Sigma}$이 위치한 0이 아닌 값이 바로 행렬 $A$의 특이값.
+## SVD 유형
+<center>
+<img src="C:/Users/user/Desktop/Vocational_Training/FinTech/images/SVD_classes.png">
+</center>
+
+### Truncated SVD 행렬 분해의 의미
+$$A_{(m{\times}n)}{\approx}\begin{bmatrix}m{\times}r\end{bmatrix} \begin{bmatrix}r{\times}r\end{bmatrix} \begin{bmatrix}r{\times}n\end{bmatrix} = A'_{(m{\times}n)}$$
+* SVD는 차원 축소를 위한 행렬 분해를 통해 Latent Factor(잠재 요인)을 찾을 수 있는데, 이렇게 찾아진 Latent Factor는 많은 분야에 활용(추천 엔진, 문서의 잠재 의미 분석 등).
+* SVD로 차원 축소 행렬 분해된 후 다시 분해된 행렬을 이용하여 원복된 데이터 셋은 잡음(Noise)이 제거된 형태로 재구성 될 수 있음.
+* 사이킷런에서는 TruncatedSVD로 차원을 축소할 때 원본 데이터에 $U{\Sigma}$를 적용하여 차원 축소.
+## SVD 활용
+* 이미지 압축/변환
+* 추천엔진
+* 문서 잠재 의미 분석
+* 의사 역행렬을 통한 모델 예측
+### 실습
+
+<details>
+<summary>코드 펼치기/접기</summary>
+<div markdown="1">
+
+```python
+# numpy의 svd 모듈 import
+import numpy as np
+from numpy.linalg import svd
+
+# 4X4 Random 행렬 a 생성
+np.random.seed(121)
+a = np.random.randn(4,4)
+print(np.round(a,3))
+```
+```python
+# 4X4 행렬을 특이값 분해
+U, Sigma, Vt = svd(a)
+print(U.shape, Sigma.shape, Vt.shape)
+print()
+print(f"U matrix :\n{np.round(U,3)}")
+print()
+print(f"Sigma Value :\n{np.round(Sigma,3)}")
+print()
+print(f"V transpose matrix :\n{np.round(Vt,3)}")
+```
+```python
+# Sigma를 다시 0을 포함한 대칭행렬로 변환
+Sigma_mat = np.diag(Sigma)
+a_ = np.dot(np.dot(U, Sigma_mat), Vt)
+print(np.round(Sigma_mat,3))
+print()
+print(np.round(a_,3))
+```
+* 데이터 의존도가 높은 원본 원본 데이터 행렬 생성 for compact SVD
+```python
+print(np.round(a,3))
+print()
+# 행렬내의 값 사이에 공선성 형성
+a[2] = a[0] + a[1]
+a[3] = a[0]
+print(np.round(a,3))
+```
+```python
+# 다시 SVD를 수행하여 Sigma 값 확인
+U, Sigma, Vt = svd(a)
+print(U.shape, Sigma.shape, Vt.shape)
+print(f"Sigma Value :\n{np.round(Sigma,3)}")
+
+# 원본에서는 [3.423 2.023 0.463 0.079]
+```
+```python
+# U 행렬의 경우는 Sigma와 내적을 수행하므로 Sigma의 앞 2행에 대응되는 앞 2열만 추출
+U_ = U[:, :2]
+Sigma_ = np.diag(Sigma[:2])
+
+# V 전치 행렬의 경우는 앞 2행만 추출
+Vt_ = Vt[:2]
+print(U_.shape, Sigma_.shape, Vt_.shape)
+print()
+
+# U, Sigma, Vt의 내적을 수행하며, 다시 원본 행렬 복원
+a_ = np.dot(np.dot(U_,Sigma_), Vt_)
+print(np.round(a_,3))
+```
+* Truncated SVD를 이용한 행렬 분해
+```python
+import numpy as np
+from scipy.sparse.linalg import svds
+from scipy.linalg import svdvals
+
+# 원본 행렬을 출력하고, SVD를 적용할 경우 U, Sigma, Vt의 차원 확인
+np.random.seed(121)
+matrix = np.random.random((6,6))
+print(f"원본 행렬 :\n{matrix}")
+U, Sigma, Vt = svd(matrix, full_matrices=False)
+print(f"\n분해 행렬 차원 : {U.shape, Sigma.shape, Vt.shape}")
+print(f"\nSigma값 행렬 : {Sigma}")
+
+# Truncated SVD로 Sigma 행렬의 특이값을 4개로 하여 Truncated SVD 수행.
+num_components = 4
+U_tr, Sigma_tr, Vt_tr = svds(matrix, k=num_components)
+print(f"\nTruncated SVD 분해 행렬 차원 : {U_tr.shape, Sigma_tr.shape, Vt_tr.shape}")
+print(f"\nTruncated SVD Sigma값 행렬 : {Sigma_tr}")
+matrix_tr = np.dot(np.dot(U_tr, np.diag(Sigma_tr)), Vt_tr)  # output of TuncatedSVD
+
+print(f"\nTruncated SVD로 분해 후 복원 행렬 : \n{matrix_tr}")
+```
+* 사이킷런 TruncatedSVD 클래스를 이용한 변환
+```python
+from sklearn.decomposition import TruncatedSVD, PCA
+from sklearn.datasets import load_iris
+import matplotlib.pyplot as plt
+
+iris = load_iris()
+iris_ftrs = iris.data
+
+# 2개의 주요 component로 TruncatedSVD 변환
+tsvd = TruncatedSVD(n_components=2)
+tsvd.fit(iris_ftrs)
+iris_tsvd = tsvd.transform(iris_ftrs)
+
+# Scatter plot 2차원으로 TruncatedSVD 변환 된 데이터 표현. 품종은 색깔로 구분
+plt.scatter(x=iris_tsvd[:,0], y=iris_tsvd[:,1], c=iris.target)
+plt.xlabel("TruncatedSVD Component 1")
+plt.ylabel("TruncatedSVD Component 2")
+plt.show()
+```
+```python
+from sklearn.preprocessing import StandardScaler
+
+# iris 데이터를 StandardScaler로 변환
+scaler = StandardScaler()
+iris_scaled = scaler.fit_transform(iris_ftrs)
+
+# 스케일링 된 데이터를 기반으로 TruncatedSVD 변환 수행
+tsvd = TruncatedSVD(n_components=2)
+tsvd.fit(iris_scaled)
+iris_tsvd = tsvd.transform(iris_scaled)
+
+# 스케일링 된 데이터를 기반으로 PCA 변환 수행
+pca = PCA(n_components=2)
+pca.fit(iris_scaled)
+iris_pca = pca.transform(iris_scaled)
+
+# TruncatedSVD 변환 데이터를 왼쪽에, PCA변환 데이터를 오른쪽에 표현
+fig, (ax1, ax2) = plt.subplots(figsize=(9,4), ncols=2)
+ax1.scatter(x=iris_tsvd[:,0], y=iris_tsvd[:,1], c=iris.target)
+ax2.scatter(x=iris_pca[:,0], y=iris_pca[:,1], c=iris.target)
+ax1.set_title("Truncated SVD Transformed")
+ax2.set_title("PCA Transformed")
+plt.show()
+```
+</div>
+</details>
+
+</br>
+
+
+# 참고
+## NMF(Non Negative Matrix Factorization)
+* NMF는 원본 행렬 내의 모든 원소 값이 모두 양수(0 이상)라는 게 보장되면 다음과 같이 좀 더 간단하게 두 개의 기반 양수 행렬로 분해될 수 있는 기법을 지칭함
+$$V_{4\times6} \approx W_{4\times2} \times H_{2\times6}$$
+## 행렬분해(Matrix Factorization)
+* 행렬분해는 일반적으로 SVD와 같은 행렬 분해 기법을 통칭하는 것.
+* 행렬분해를 하게 되면 $W$행렬과 $H$행렬은 일반적으로   
+  * 길고 가는 행렬 $W$(즉, 원본 행렬의 행 크기와 같고, 열 크기보다 작은 행렬)와   
+  * 작고 넓은 행렬 $H$(즉, 원본 행렬의 행 크기보다 작고, 열 크기와 같은 행렬)로   
+분해됨.
+* 이렇게 분해된 행렬은 Latent Factor(잠재 요소)를 특성으로 가지게 됨.
+* 분해 행렬 $W$는 원본 행에 대해서 이 잠재 요소의 값이 얼마나 되는지에 대응하며, 분해 행렬 $H$는 이 잠재 요소가 원본 열(즉, 원본 속성)로 어떻게 구성됐는지를 나타내는 행렬.
+<center>
+<img src="C:/Users/user/Desktop/Vocational_Training/FinTech/images/matrix_fact.png">
+</center>
+
+### 실습
+
+<details>
+<summary>코드 펼치기/접기</summary>
+<div markdown="1">
+
+```python
+from sklearn.decomposition import NMF
+from sklearn.datasets import load_iris
+import matplotlib.pyplot as plt
+
+iris = load_iris()
+iris_ftrs = iris.data
+nmf = NMF(n_components=2, init="nndsvda")
+nmf.fit(iris_ftrs)
+iris_nmf = nmf.transform(iris_ftrs)
+plt.scatter(x=iris_nmf[:,0], y=iris_nmf[:,1], c=iris.target)
+plt.xlabel("NMF Component 1")
+plt.ylabel("NMF Component 2")
+plt.show()
+```
+
+</div>
+</details>
+
+</br>
+
+군집평가
+===
+실루엣 분석
+---
+### 군집평가 - 실루엣 분석
+* 실루엣 분석은 각 군집 간의 거리가 얼마나 효율적으로 분리돼 있는지를 나타냄.
+* 실루엣 분석은 개별 데이터가 가지는 군집화 지표인 실루엣 계수(silhouette coefficient)를 기반으로 함.
+* 개별 데이터가 가지는 실루엣 계수는 해당 데이터가 같은 군집 내의 데이터와 얼마나 가깝게 군집화돼 있고, 다른 군집에 있는 데이터와는 얼마나 멀리 분리돼 있는지를 나타내는 지표임.
+### 실루엣 계수
+* silhouette coefficient : 개별 데이터가 가지는 군집화 지표
+$$s(i) = \frac{b_i-a_i}{Max(a_i, b_i)}$$
+* $a_{ij}$는 $i$번째 데이터에서 자신이 속한 클러스터 내의 다른 데이터 포인트 까지의 거리. 즉, $a_{12}는 1번 데이터에서 2번 데이터까지의 거리.
+* $a_i$는 $i$번째 데이터에서 **_자신이 속한_** 클러스터 내의 다른 데이터 포인트들의 거리 평균. 즉, $a_i = mean(a_{12}, a_{13}, a_{14})$
+* $b_i$는 $i$번째 데이터에서 가장 가까운 **_타_** 클러스터 내의 다른 데이터 포인트들의 거리 평균. 즉, $b_i = mean(b_{15}, b_{16}, b_{17}, b_{18})$
+* 두 군집 간의 거리가 얼마나 떨어져 있는가의 값은 $(b_i-a_i)$이며, 이 값을 정규화 하기 위해 $Max(a_i,b_i)$ 값으로 나눔.
+* 실루엣 계수는 $-1<s_i<1$ 의 값을 가지며, $1$에 가까워질수록 근처의 군집과 더 멀리 떨어져 있다는 것이고, $0$에 가까울 수록 근처의 군집과 가까워진다는 것. $(-)$ 값은 아예 다른 군집에 데이터 포인트가 할당됐음을 뜻함.
+* 즉, 실루엣 계수가 1에 가까울수록 군집화가 잘 되었다는 의미이며, 실루엣 계수가 음수$(-)$인 경우는 해당 데이터의 군집화가 잘못 되었다는 뜻임.
+
+### 사이킷런 실루엣분석 API
+* 사이킷런 실루엣 분석 API
+  * sklearn.metrics.silhouette_samples(X, labels, *, metric='euclidean', **kwds)
+    * X : 개별 데이터, labels : 군집, metric : 거리 계산법.
+    * **각 데이터 포인트의 실루엣 계수**를 계산해 반환함.
+  * sklearn.metrics.silhouette_score(X, labels, *, metric='euclidean', sample_size=None, random_state=None, **kwds)
+    * 인자로 X feature 데이터 세트와 각 피처 데이터 세트가 속한 군집 레이블 값인 labels 데이터를 입력해주면 **전체 데이터의 실루엣계수 값을 평균**해 반환함. 즉, np.mean(silhouette_samples())임.   
+    * 일반적으로 이 값이 높을수록 군집화가 어느정도 잘 됐다고 판단할 수 있음. 하지만 무조건 이 값이 높다고 해서 군집화가 잘 됐다고 판단할 수 는 없음.
+* 실루엣 분석에 기반한 좋은 군집 기준
+  * 전체 실루엣 계수의 평균 값, 즉 사이킷런의 silhouette_score() 값은 $0~1$ 사이의 값을 가지며, 1에 가까울수록 좋음.
+  * 하지만 전체 실루엣 계수의 평균값과 더불어 개별 군집의 평균값의 편차가 크지 않아야 함. 즉, 개별 군집의 실루엣 계수 평균값이 전체 실루엣 계수의 평균값에서 크게 벗어나지 않는 것이 중요함.   
+  * 만약 전체 실루엣 계수의 평균값은 높지만, 특정 군집의 실루엣 계수 평균값만 유난히 높고 다른 군집들의 실루엣 계수 평균값이 낮으면 좋은 군집화 조건이 아님.
+
+#### 실습 : 붓꽃 데이터에서 실루엣 계수 계산
+
+<details>
+<summary>코드 펼치기/접기</summary>
+<div markdown="1">
+
+```python
+from sklearn.preprocessing import scale
+from sklearn.datasets import load_iris
+from sklearn.cluster import KMeans
+
+# 실루엣 분석 metric 값을 구하기 위한 API 추가
+from sklearn.metrics import silhouette_samples, silhouette_score
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+iris = load_iris()
+
+feature_names = ["sepal_length", "sepal_width", "petal_length", "petal_width"]
+iris_df = pd.DataFrame(data=iris.data, columns=feature_names)
+
+# KMeans 군집화 수행
+kmeans = KMeans(n_clusters=3, init="k-means++", max_iter=300, random_state=0).fit(iris_df)
+# 데이터당 클러스터 값 할당
+iris_df["cluster"] = kmeans.labels_
+
+print(iris_df.shape)
+iris_df
+```
+```python
+# iris의 모든 개별 데이터의 실루엣 계수값을 구함
+scroe_samples = silhouette_samples(iris.data, iris_df["cluster"])
+print(f"silhouette_samples() return 값의 shape : {scroe_samples.shape}")
+
+# iris_df에 실루엣 계수 컬럼 추가
+iris_df["silhouette_coeff"] = scroe_samples
+
+# 모든 데이터의 평균 실루엣 계수값을 구함
+average_score = silhouette_score(iris.data, iris_df["cluster"])
+print(f"붓꽃 데이터셋 Silhouette Analysis Score : {average_score:.3f}")
+
+iris_df
+
+# 데이터 별 실루엣 계수
+# 클러스터가 1인 데이터들은 0.8 정도의 실루엣 계쑤를 가지므로 군집화가 어느정도 잘 된 듯 함.
+# 하지만 실루엣 계수 평균 값이 0.553인 이유는 
+# 다른 클러스터에 할당된 데이터들의 실루엣 계수값이 작아서임.
+```
+```python
+iris_df.groupby("cluster")["silhouette_coeff"].mean()
+
+# 다른 클러스터의 실루엣 계수 평균이 상대적으로 작은 점 확인 가능함.
+```
+```python
+iris_df["silhouette_coeff"].hist()
+# setosa는 군집화가 잘 되었지만, verginica와 virsicolor는 잘 되지 않음.
+# 가장 오른쪽이 setosa.
+```
+#### 실루엣 계수 시각화를 통해 최적의 클러스터 수 찾기
+* 데이터들의 실루엣 계수를 계산해서 시각화 해주는 함수
+```python
+# 여러개의 클러스터링 갯수를 List로 입력 받아 각각의 실루엣 계수를 면적으로 시각화한 함수 작성
+def visualize_silhouette(cluster_lists, X_features) :
+
+    from sklearn.cluster import KMeans
+    from sklearn.metrics import silhouette_samples, silhouette_score
+
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
+    import math
+
+    # 입력값으로 클러스터링 갯수들을 리스트로 받아서, 각 갯수별로 클러스터링을 적용하고 실루엣 계수를 구함
+    n_cols = len(cluster_lists)
+
+    # plt.subplots()로 리스트에 기재된 클러스터링 수만큼의 sub_figures를 가지는 axs 생성
+    fig, axs = plt.subplots(figsize=(4*n_cols, 4), nrows=1, ncols=n_cols)
+
+    # 리스트에 기재된 클러스터링 갯수들을 차례로 iteration 수행하면서 실루엣 계수 시각화
+    for ind, n_cluster in enumerate(cluster_lists) :
+
+        # KMeans 클러스터링 수행하고, 실루엣 스코어와 개별 데이터의 실루엣 값 계산
+        clusterer = KMeans(n_clusters = n_cluster, max_iter=500, random_state=0)
+        cluster_labels = clusterer.fit_predict(X_features)
+
+        sil_avg = silhouette_score(X_features, cluster_labels)
+        sil_values = silhouette_samples(X_features, cluster_labels)
+
+        y_lower = 10
+        axs[ind].set_title(f"Number of Cluster : {n_cluster} \n\
+                            Silhouette Score : {round(sil_avg,3)}")
+        axs[ind].set_xlabel("The silhouette coefficeint values")
+        axs[ind].set_ylabel("Cluster label")
+        axs[ind].set_xlim([-0.1, 1])
+        axs[ind].set_ylim([0, len(X_features) + (n_cluster + 1) * 10])
+        axs[ind].set_yticks([]) # Clear the yaxis labels / ticks
+        axs[ind].set_xticks([0, 0.2, 0.4, 0.6, 0.8, 1])
+
+        # 클러스터링 갯수별로 fill_betweenx() 형태의 막대 그래프 표현
+        for i in range(n_cluster) :
+            ith_cluster_sil_values = sil_values[cluster_labels==i]
+            ith_cluster_sil_values.sort
+
+            size_cluster_i = ith_cluster_sil_values.shape[0]
+            y_upper = y_lower + size_cluster_i
+
+            color = cm.nipy_spectral(float(i)/n_cluster)
+            axs[ind].fill_betweenx(np.arange(y_lower, y_upper), 0, ith_cluster_sil_values, \
+                                facecolor=color, edgecolor=color, alpha=0.7)
+            axs[ind].text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
+            y_lower = y_upper + 10
+
+        axs[ind].axvline(x=sil_avg, color="red", linestyle="--")
+```
+* 클러스터 수 변화시키면서 random 데이터 실루엣 계수 분포 시각화
+```python
+# make_blobs를 통해 clustering을 위한 4개의 클러스터 중심의 500개 2차원 데이터 셋 생성
+from sklearn.datasets import make_blobs
+X, y = make_blobs(n_samples=500, n_features=2, centers=4, cluster_std=1, \
+                center_box=(-10.0, 10.0), shuffle=True, random_state=1)
+
+# cluster 개수를 2개, 3개, 4개, 5개 일때의 클러스터별 실루엣 계수 평균값을 시각화
+visualize_silhouette([2,3,4,5], X)
+
+# 클러스터의 개수가 2일 때 실루엣 스코어가 가장 높지만,
+# 실제 분포를 살펴보면 한쪽으로 치우쳐 있음 → 좋은 분류라 하기 어려움.
+# 임의 데이터를 생성할 때 클러스터를 4개로 나누었으므로,
+# 실제 데이터에 적합한 클러스터 개수는 실루엣 스코어가 상대적으로 낮은 4개.
+# 분류를 적용할 때 주의해야 함.
+```
+* 클러스터 수 변화시키면서 붓꽃 데이터 실루엣 계수 분포 시각화
+```python
+from sklearn.datasets import load_iris
+
+iris=load_iris()
+visualize_silhouette([2,3,4,5], iris.data)
+
+# 붓꽃 데이터 역시 본 데이터가 3개의 레이블을 가지고 있으므로,
+# 가장 적합한 클러스터 개수는 상대적으로 실루엣 점수가 낮더은 3개임을 알 수 있음. 
+```
+
+</div>
+</details>
+
+</br>
 
 
 </div>
