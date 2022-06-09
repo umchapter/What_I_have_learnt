@@ -4177,8 +4177,7 @@ Unsupervised Learnin
   정방행렬은 열과 행이 같은 행렬을 지칭. 정방행렬 중에서 대각 원소를 중심으로 원소 값이 대칭되는 행렬, 즉 $A^T=A$인 행렬을 대칭행렬이라 부름.
 * 대칭행렬은 고유값 분해와 관련해 매우 좋은 특성이 있음. 대칭행렬은 항상 고유벡터를 직교행렬(orthogonal matrix)로, 고유값을 정방 행렬로 대각화 할 수 있음.
 * $C=P{\Lambda}P^T$ ($P$는 $n{\times}n$ 정방행렬, $\Lambda$는 $n{\times}n$ 정방행렬)
-  
- $$C=\begin{bmatrix}e_1&\cdots&e_n\\\end{bmatrix}\begin{bmatrix}\lambda_1&\cdots&0\\\vdots&\ddots&\vdots\\0&\cdots&\lambda_n\end{bmatrix}\begin{bmatrix}e_1\\\vdots\\{e_n}\end{bmatrix}$$
+$$C = \begin{bmatrix}e_1&\cdots&e_n\\ \end{bmatrix} \begin{bmatrix}\lambda_1&\cdots&0\\\vdots&\ddots&\vdots\\0&\cdots&\lambda_n \end{bmatrix} \begin{bmatrix}e_1\\\vdots\\{e_n} \end{bmatrix}$$
   
 * 공분산 $C$는 고유벡터 직교 행렬, 고유값 정방행렬 * 고유벡터 직교행렬의 전치 행렬로 분해됨.
 * $e_1$는 첫번째 고유벡터를, $\lambda_i$는 i번째 고유벡터의 크기를 의미함.
