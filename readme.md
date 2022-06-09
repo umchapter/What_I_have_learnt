@@ -5866,7 +5866,7 @@ $\displaystyle\frac{\partial{R(w)}}{\partial{w_1}}=\frac{2}{N}\displaystyle\sum_
 $\displaystyle\frac{\partial{R(w)}}{\partial{w_0}}=\frac{2}{N}\displaystyle\sum_{i=1}^n-(y_i-(w_0+w_1x_i))=-\frac{2}{N}\displaystyle\sum_{i=1}^n$(실제값$_i-$예측값$_i$)
 </center>
 
-* $w_1,w_0$의 편미분 결과값인 $-\frac{2}{N}\displaystyle\sum_{i=1}^nx_i*$ (실제값 $_i-$ 예측값 $_i$) 와 $-\frac{2}{N}\displaystyle\sum_{i=1}^n$ (실제값$_i-$예측값$_i$) 을 반복적으로 보정하면서 $w_1, w_0$값을 업데이트 하면 비용함수 $R(w)$가 최소가 되는 $w_1, w_0$값을 구할 수 있음. 하지만 실제로는 앞의 편미분 값이 너무 클 수 있기 때문에 보정계수 $\eta$를 곱함 $\rarr$ "학습률"
+* $w_1, w_0$의 편미분 결과값인 $-\frac{2}{N}\displaystyle\sum_{i=1}^nx_i*$ ($실제값_i - 예측값_i$) 와 $-\frac{2}{N}\displaystyle\sum_{i=1}^n$ ($실제값_i-예측값_i$) 을 반복적으로 보정하면서 $w_1, w_0$값을 업데이트 하면 비용함수 $R(w)$가 최소가 되는 $w_1, w_0$값을 구할 수 있음. 하지만 실제로는 앞의 편미분 값이 너무 클 수 있기 때문에 보정계수 $\eta$를 곱함 $\rarr$ "학습률"
   * 새로운 $w_1 =$ 이전 $w_1 - \eta\frac{2}{N}\displaystyle\sum_{i=1}^nx_i*$(실제값$_i-$예측값$_i$)
   * 새로운 $w_0 =$ 이전 $w_0 - \eta\frac{2}{N}\displaystyle\sum_{i=1}^n$(실제값$_i-$예측값$_i$)
   * 비용 함수의 값이 감소했으면 다시 $w_1, w_0$를 업데이트 하여 다시 비용 함수의 값 계산. 더 이상 비용 함수의 값이 감소하지 않으면 그 때의 $w_1, w_0$를 구하고 반복을 중지함.
