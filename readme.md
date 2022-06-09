@@ -5646,7 +5646,7 @@ visualize_silhouette([2,3,4,5], iris.data)
 </br>
 
 <details>
-<summary>(스압주의) 머신러닝 학습 내역 펼치기/접기</summary>
+<summary>(스압주의) 딥러닝 학습 내역 펼치기/접기</summary>
 <div markdown="1">
 	
 딥러닝 기초
